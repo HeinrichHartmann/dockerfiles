@@ -3,7 +3,7 @@ services:
   mail:
     build: .
     ports:
-    - "25:25"
+    - "1025:25"
     volumes:
     - var:/var/lib/postfix
     - home:/home
