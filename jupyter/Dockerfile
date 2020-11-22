@@ -44,7 +44,8 @@ RUN pip install \
     bash_kernel
 RUN python -m bash_kernel.install
 
-RUN mkdir -p /work/run
+RUN sudo mkdir -p /work/run
+RUN sudo chmod a+w -R /work
 WORKDIR /work
 
 #
