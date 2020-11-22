@@ -18,10 +18,10 @@ RUN apt-get install -y \
     less \
     man \
     autoconf \
-    strace
+    jq
 
 # install latest libcircllhist from sources
-RUN git clone https://github.com/circonus-labs/libcircllhist/ /tmp/libcircllhist &&\
+RUN git clone --depth 1 https://github.com/circonus-labs/libcircllhist/ /tmp/libcircllhist &&\
     cd /tmp/libcircllhist &&\
     autoconf &&\
     ./configure --libdir /usr/lib/x86_64-linux-gnu/ &&\
@@ -33,31 +33,29 @@ USER $NB_USER
 # Python
 #
 # We want to run pip as $NBUSER
+#
+# bash kernel: http://slhogle.github.io/2017/bash_jupyter_notebook/
+#
 RUN pip install --upgrade pip
 RUN pip install \
     circonusapi \
     circllhist \
-    nbmerge
+    nbmerge \
+    bash_kernel
+RUN python -m bash_kernel.install
+
+RUN mkdir -p /work/run
+WORKDIR /work
 
 #
 # Runtime Config
 #
 EXPOSE 9998
 EXPOSE 9999
-ADD cmd.sh ./
-CMD ["/home/jovyan/cmd.sh"]
+ADD cmd.sh /work/run
+ADD local.sh /work/run
 
-# Install bash kernel
-# http://slhogle.github.io/2017/bash_jupyter_notebook/
-RUN pip install bash_kernel &&\
-    python -m bash_kernel.install
+CMD ["/work/run/cmd.sh"]
 
-# Change to cwd
-WORKDIR /home/jovyan/work
 
-# More stuff
-RUN sudo apt-get update
-RUN sudo apt-get -y install \
-    jq \
-    default-jre
 
