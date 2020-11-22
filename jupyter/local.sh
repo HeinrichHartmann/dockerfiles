@@ -6,7 +6,6 @@ echo "#"
 echo "# jupyterc"
 echo "#"
 echo "# starting jupyter notebook&lab ... "
-jupyter notebook --ip 0.0.0.0 --port 9999 --NotebookApp.token="$TOKEN" &> notebook.log &
-jupyter lab --ip 0.0.0.0 --port 9998 --NotebookApp.token="$TOKEN" &> lab.log &
-sleep 3
-bash
+jupyter notebook --ip 0.0.0.0 --port 9999 --NotebookApp.token="$TOKEN" &
+jupyter lab --ip 0.0.0.0 --port 9998 --NotebookApp.token="$TOKEN" &
+wait
