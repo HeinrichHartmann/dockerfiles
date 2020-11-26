@@ -55,6 +55,7 @@ EXPOSE 9998
 EXPOSE 9999
 ADD cmd.sh /work/run
 ADD local.sh /work/run
+ADD remote.sh /work/run
 
 CMD ["/work/run/cmd.sh"]
 

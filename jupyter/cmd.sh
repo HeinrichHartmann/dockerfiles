@@ -23,4 +23,4 @@ printf '# * local url: http://%s:9998/?token=%s\n' "0.0.0.0" "$TOKEN"
 printf '# * public url: http://%s:9998/?token=%s\n' "$PUBLIC_IP" "$TOKEN"
 printf "#\n"
 
-bash
+wait
