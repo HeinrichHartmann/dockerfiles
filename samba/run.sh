@@ -52,6 +52,7 @@ source auth.sh
 sudo docker run -d --restart unless-stopped -p 139:139 -p 445:445 --name "samba" \
      -v /share/hhartmann/pub:/smb/pub \
      -v /share/hhartmann:/smb/share \
+     -v /media:/smb/media \
      dperson/samba -p \
      $SAMBA_AUTH_ARGS \
      -s "public;/smb/pub;yes;no;yes;all;none" \
