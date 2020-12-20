@@ -5,31 +5,43 @@
 
 CN=heinrichhartmann.net
 CACRT_NAME=${CN}-ca.crt
+CAKEY=secrets/${CN}-ca.key
 CACRT=ssl/${CACRT_NAME}
 CACRT_INSTALL_DIR=/usr/local/share/ca-certificates
-KEY=secrets/host.key
+CNKEY=secrets/${CN}.key
+CNCSR=ssl/${CN}.csr
+CNCRT=ssl/${CN}.crt
+KEYLEN=8192
 
-
-.PHONY: ca keys
+.PHONY: ca keys cert
+cert: ${CNCRT}
 ca: ${CACRT}
-keys: ${KEY}
+keys: ${CAKEY} ${CNKEY}
 
-${KEY}:
-	# Private keys, etc. are kept in a separate directory that MUST not be published
-	mkdir -p secrets
-	# Generate private key
-	openssl genrsa -out $@ 8192
-	# Print key
-	openssl rsa -in $@ -noout -text
+%.key:  # used for creating CA- and CN-keys
+	mkdir -p "$$(dirname $@)"
+	openssl genrsa -out $@ ${KEYLEN} # Generate key as above
+	openssl rsa -in $@ -noout -text > $@.txt # print key contents for human inspection
 
-${CACRT}: ${KEY}
-	mkdir -p ssl
+${CACRT}: ${CAKEY}
+	mkdir -p "$$(dirname $@)"
 	openssl req -x509 -new -nodes -key $< -sha256 -days 3650 -out $@ --subj '/C=DE/CN=${CN}/'
-	# print certificate text
-	openssl x509 -in $@ -text -noout
+	openssl x509 -in $@ -text -noout > $@.txt # print certificate text for human inspection
 
-.PHONY: install-ca-ubuntu
-install-ca-ubuntu: ${CACRT}
+${CNCSR}: ${CNKEY}
+	mkdir -p "$$(dirname $@)"
+	openssl req -new -key $< -out $@ --subj '/C=DE/CN=*.${CN}/' # Certificat Signing Request for *.CN
+	openssl req -in $@ -noout -text > $@.txt # for human inspection
+
+${CNCRT}: ${CAKEY} ${CACRT} ${CNCSR}
+	echo 'subjectAltName=example.com,DNS:*.example.com' > extfile
+	openssl x509 -req -in ${CNCSR} -CA ${CACRT} -CAkey ${CAKEY} -out $@ -days 3650 -sha512 -CAcreateserial -extfile extfile
+	openssl x509 -in $@ -noout -text > $@.txt # for human inspection
+
+################################################################################
+
+.PHONY: install-ca-debian
+install-ca-debian: ${CACRT}
 	# https://superuser.com/questions/437330/how-do-you-add-a-certificate-authority-ca-to-ubuntu
 	sudo mkdir -p ${CACRT_INSTALL_DIR}
 	sudo cp $<  ${CACRT_INSTALL_DIR}/${CACRT_NAME}
@@ -38,8 +50,8 @@ install-ca-ubuntu: ${CACRT}
 	grep "$$(cat $< | head -n 2 | tail -n 1)" \
 		/etc/ssl/certs/ca-certificates.crt > /dev/null && echo OK || echo NOT FOUND
 
-.PHONY: remove-ca-ubuntu
-remove-ca-ubuntu:	
+.PHONY: remove-ca-debian
+remove-ca-debian:	
 	sudo rm  ${CACRT_INSTALL_DIR}/${CACRT_NAME}
 	sudo update-ca-certificates
 	# Check if this worked:
@@ -48,6 +60,12 @@ remove-ca-ubuntu:
 
 
 
+
+
+
+
+################################################################################
+
 install-ca-osx: ${CACRT}
 	# https://manuals.gfi.com/en/kerio/connect/content/server-configuration/ssl-certificates/adding-trusted-root-certificates-to-the-server-1605.html
-	sudo security add-trusted-cert -d -r trustRoot -k "/Library/Keychains/System.keychain" $<
+	# sudo security add-trusted-cert -d -r trustRoot -k "/Library/Keychains/System.keychain" $<

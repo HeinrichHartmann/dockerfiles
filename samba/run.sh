@@ -1,3 +1,4 @@
+#!/bin/bash
 # sudo docker run -it --rm dperson/samba -h
 # Usage: samba.sh [-opt] [command]
 # Options (fields in '[]' are optional, '<>' are required):
@@ -56,7 +57,9 @@ sudo docker run -d --restart unless-stopped -p 139:139 -p 445:445 --name "samba"
      dperson/samba -p \
      $SAMBA_AUTH_ARGS \
      -s "public;/smb/pub;yes;no;yes;all;none" \
-     -s "share;/smb/share;yes;no;no;hhartmann;hhartmann" \
+     -s "share;/smb/share;yes;no;no;hhartmann,lhartmann;hhartmann" \
      -s "HartmannIT;/smb/share/shelf/HartmannIT/HartmannIT;yes;no;no;hhartmann,lhartmann;hhartmann,lhartmann" \
      -s "videos;/smb/share/garage/Videos;yes;yes;no;kodi" \
      -s "all;/smb;yes;no;no;hhartmann"
+
+docker logs -f samba
