@@ -1,0 +1,11 @@
+version: '2'
+services:
+  server:
+    image: nginx:1.15
+    volumes:
+      - ./html:/usr/share/nginx/html
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ../ssl/heinrichhartmann.net.crt:/etc/nginx/host.crt
+      - ../secrets/heinrichhartmann.net.key:/etc/nginx/host.key
+    ports:
+    - "4443:443"
