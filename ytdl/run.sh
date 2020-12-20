@@ -1,1 +1,8 @@
-docker run -d --name youtube-dl -e MY_ID=user -e MY_PW=1234 -v /share/hhartmann/garage/Videos/ytdl:/downfolder -p 8085:8085 modenaf360/youtube-dl-nas
+docker stop youtube-dl
+docker rm youtube-dl
+docker run -d --name youtube-dl\
+       -v /share/hhartmann/garage/Videos/ytdl:/downfolder \
+       -p 8085:8085 \
+       docker.heinrichhartmann.net:5000/youtube-dl
+
+docker logs -f youtube-dl
