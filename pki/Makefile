@@ -40,26 +40,22 @@ ${CNCRT}: ${CAKEY} ${CACRT} ${CNCSR}
 ################################################################################
 
 .PHONY: install-ca-debian
-install-ca-debian: ${CACRT}
+install-ca-debian: # ${CACRT}
 	# https://superuser.com/questions/437330/how-do-you-add-a-certificate-authority-ca-to-ubuntu
 	sudo mkdir -p ${CACRT_INSTALL_DIR}
-	sudo cp $<  ${CACRT_INSTALL_DIR}/${CACRT_NAME}
+	sudo cp ${CACRT}  ${CACRT_INSTALL_DIR}/${CACRT_NAME}
 	sudo update-ca-certificates
 	# Check if this worked:
-	grep "$$(cat $< | head -n 2 | tail -n 1)" \
+	grep "$$(cat ${CACRT} | head -n 2 | tail -n 1)" \
 		/etc/ssl/certs/ca-certificates.crt > /dev/null && echo OK || echo NOT FOUND
 
 .PHONY: remove-ca-debian
-remove-ca-debian:	
+remove-ca-debian:
 	sudo rm  ${CACRT_INSTALL_DIR}/${CACRT_NAME}
 	sudo update-ca-certificates
 	# Check if this worked:
 	grep "$$(cat ${CACRT} | head -n 2 | tail -n 1)" \
 		/etc/ssl/certs/ca-certificates.crt > /dev/null && echo ERROR Cert still active || echo OK
-
-
-
-################################################################################
 
 install-ca-osx: ${CACRT}
 	# https://manuals.gfi.com/en/kerio/connect/content/server-configuration/ssl-certificates/adding-trusted-root-certificates-to-the-server-1605.html
