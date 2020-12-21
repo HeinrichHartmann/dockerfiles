@@ -9,12 +9,13 @@ CAKEY=secrets/${CN}-ca.key
 CACRT=ssl/${CACRT_NAME}
 CACRT_INSTALL_DIR=/usr/local/share/ca-certificates
 CNKEY=secrets/${CN}.key
+CNPEM=secrets/${CN}.pem
 CNCSR=ssl/${CN}.csr
 CNCRT=ssl/${CN}.crt
 KEYLEN=8192
 
 .PHONY: ca keys cert
-cert: ${CNCRT}
+cert: ${CNCRT} ${CNPEM} 
 ca: ${CACRT}
 keys: ${CAKEY} ${CNKEY}
 
@@ -25,17 +26,21 @@ keys: ${CAKEY} ${CNKEY}
 
 ${CACRT}: ${CAKEY}
 	mkdir -p "$$(dirname $@)"
-	openssl req -x509 -new -nodes -key $< -sha256 -days 3650 -out $@ --subj '/C=DE/CN=${CN}/'
+	openssl req -x509 -new -nodes -key $< -sha256 -days 365 -out $@ --subj '/C=DE/CN=${CN}/'
 	openssl x509 -in $@ -text -noout > $@.txt # print certificate text for human inspection
 
 ${CNCSR}: ${CNKEY}
 	mkdir -p "$$(dirname $@)"
-	openssl req -new -key $< -out $@ --subj '/C=DE/CN=*.${CN}/' # Certificat Signing Request for *.CN
+	openssl req -new -key $< -out $@ --subj '/C=DE/CN=*.${CN}/' -reqexts SAN -config req.cfg
 	openssl req -in $@ -noout -text > $@.txt # for human inspection
 
 ${CNCRT}: ${CAKEY} ${CACRT} ${CNCSR}
-	openssl x509 -req -in ${CNCSR} -CA ${CACRT} -CAkey ${CAKEY} -out $@ -days 3650 -sha512 -CAcreateserial
+	printf "subjectAltName=DNS:*.${CN}" > extfile
+	openssl x509 -req -in ${CNCSR} -CA ${CACRT} -CAkey ${CAKEY} -out $@ -days 365 -sha512 -CAcreateserial -extfile extfile
 	openssl x509 -in $@ -noout -text > $@.txt # for human inspection
+
+${CNPEM}: ${CNKEY} ${CNCRT}
+	cat ${CNKEY} ${CNCRT} > $@
 
 ################################################################################
 
